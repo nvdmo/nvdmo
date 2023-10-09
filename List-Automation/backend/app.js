@@ -19,7 +19,8 @@ const { findMatchingMachineNames,
 
 //importing marketo API functions 
 const generateToken = require('./marketo_api_functions/generateToken.js');
-const { Console } = require('console');
+const makeBulkRequest = require('./marketo_api_functions/makeBulkRequest.js');
+
 
 
 // middlewares
@@ -141,52 +142,58 @@ app.post('/upload/excel', upload.single('excel'), function (req, res) {
 });
 
 app.post('/approved/data', async (req, res) => {
-  let data = req.body; 
+  let data = req.body;
 
   // Changing the Key to desired key that marketo accepts 
   data = data.map((row) => {
-    const { "*First Name": firstName, "*Last Name": lastName, "*Email Address": email, "*Company Name": contactCompany, "*Country": country, "Phone Number": phone, "Industry": industry,"Job Title":title, ...rest } = row; 
+    const { "*First Name": firstName, "*Last Name": lastName, "*Email Address": email, "*Company Name": contactCompany, "*Country": country, "Phone Number": phone, "Industry": industry, "Job Title": title,"B2B True":B2B__c,"Holding Field - Ent Topics":Holding_Field_Ent_Topics,"Holding Field - Ent Opt-In Source":Holding_Field_Ent_Opt_In_Source,"Holding Field - Dev Opt-In Source":Holding_Field_Dev_Opt_In_Source,"Holding Field - Dev Opt-In Sentence":Holding_Field_Dev_Opt_In_Sentence} = row;
 
     return {
-      firstName,lastName,email,contactCompany,country,phone,title,industry,...rest 
+      firstName, lastName, email, contactCompany, country, phone, title, industry,B2B__c,Holding_Field_Ent_Topics,Holding_Field_Ent_Opt_In_Source,Holding_Field_Dev_Opt_In_Source,Holding_Field_Dev_Opt_In_Sentence
     }
 
   });
 
-  console.log(data);
+  // console.log(data);  
   const ws = reader.utils.json_to_sheet(data);
   const csv = reader.utils.sheet_to_csv(ws);
   // Writing the csv file to download folder  
-  fs.writeFile('./downloads/COOL.csv', csv, (err) => {
-    if (err) {
-      console.error('Error writing to file:', err);
-    } else {
-      console.log('Data has been written to the file.');
-    }
-  }); 
 
+  try {
 
-  console.log('approves API hit');
+    fs.writeFile('./downloads/COOL.csv', csv, async (err) => {
+      if (err) {
+        console.error('Error writing to file:', err);
+      } else {
+        console.log('Data has been written to the file.');
 
-  //  console.log(data);   
+        // First making token generation request to marketo
 
-  res.json({
-    success: true,
-    message: "DATA received in backend" 
-  });
+        const token = await generateToken(process.env.BASE_URL, process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 
-})
+        // console.log(token.access_token);
+        const pathForFile = path.join(__dirname, '/downloads/COOL.csv');
 
-// async function makeRequest(){
-// const res =  await  generateToken(process.env.BASE_URL,process.env.CLIENT_ID,process.env.CLIENT_SECRET);
+        if (token.access_token) {
+          const bulkImport = await makeBulkRequest(token.access_token, pathForFile,res);
+          console.log(`Bulk Import ${bulkImport}`);      
+          
+        }
 
-// console.log(res.access_token); 
-// }
+      } // end of writing file functionCLIENT_ID
 
+    });
 
+  } catch (error) {
 
+    res.status(501).json({ 
+      success: false,
+      message: "error"
+    });
 
+  }
 
+});
 
 
 app.listen(PORT, () => {

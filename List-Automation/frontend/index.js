@@ -8,14 +8,20 @@ const container = document.querySelector('.container');
 let container1 = document.getElementById("container1");
 const DownloadBtnContainer = document.querySelector('.download-button-container');
 const downloadBtn = document.getElementById('download');
-
-const proceedButton = document.getElementById('input-button');
+const deleteSelection = document.getElementById("delete-rows");
+   
+const proceedButton = document.getElementById('input-button'); 
 let selectedFile;
 let tableData;
 let documentApproval = false;
-let table ; 
+let table;  
 var alertMessage = document.querySelector('.alert-danger');
 const successMessage = document.querySelector('.alert-success');
+
+// Seleting elements of the Loader 
+const loaderContainer = document.querySelector(".loader_container"); 
+// const loader = document.querySelector("#loader");
+const loaderTextBelow = document.querySelector("#loader_text");
 
 //defining the array containing table columns to be removed ;
 
@@ -32,7 +38,10 @@ window.addEventListener('DOMContentLoaded', () => {
   container1.style.display = 'none'
   DownloadBtnContainer.style.display = "none";
 
-})
+  //setting selection button attribute to be disabled
+  // deleteSelection.setAttribute("disabled","");
+
+}); 
 
 file.addEventListener('change', () => {
   selectedFile = file.files[0].name
@@ -224,13 +233,13 @@ function convert(jsonData) {    // Convert functions START
       {
         label: "Delete Column",
         action: function (e, column) {
-         const cannotDelete = ["*First Name", "*Last Name", "*Email Address", "*Company Name", "*Country"];
+         const cannotDelete = ["*First Name", "*Last Name", "*Email Address", "*Company Name", "*Country"]; 
         //  console.log(column.getField());    
          if(cannotDelete.some((field) => field === column.getField())){ 
-            showToast("Cannot delete an important field!!!"); 
+            showToast("Cannot delete an important field!!!"," linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)"); 
             return; 
          }else if(tableEditable === false){
-            showToast("Please click modify to delete Column OR Row");
+            showToast("Please click modify to delete Column OR Row"," linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
             return; 
          } 
          
@@ -305,7 +314,21 @@ function convert(jsonData) {    // Convert functions START
         editable: editCheck,
         formatter: importantFieldFormatter,
         cellEdited: validateCellData,
-        headerContextMenu: headerContextMenu,
+        headerContextMenu: headerContextMenu, 
+      }
+
+    }
+
+    if (head === 'Industry') {
+      return {
+        title: head,
+        field: head,
+        hozAlign: "left",
+        editor: "input",
+        editable: editCheck,
+        formatter: importantFieldFormatter,
+        cellEdited: validateIndustryCell,
+        headerContextMenu: headerContextMenu, 
       }
 
     }
@@ -317,6 +340,7 @@ function convert(jsonData) {    // Convert functions START
       hozAlign: "left",
       editor: "input",
       editable: editCheck,
+      formatter: importantFieldFormatter, 
       headerContextMenu: headerContextMenu,
     }
 
@@ -327,13 +351,26 @@ function convert(jsonData) {    // Convert functions START
     return true;
   });
 
+  // adding a collumn for row infornt of the table
+
+  newColumnHeaders.unshift({ title: "Row NO.", field : "Row Number", formatter: "rownum", hozAlign: "left", width: 40});
+
+
+
+  //Validating Industry cell but he cell can remain Empty
+
+  function validateIndustryCell(cell){ 
+    cell.getElement().classList.remove('bg-danger');
+  }
+
   //Cell Data Validate 
 
   function cellDataValidate(cell) {
 
     console.log(`cell edition function working.....`);
 
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    // const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/; 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; 
     let value = cell.getValue();
 
     if (emailRegex.test(value) && (value !== undefined || value !== null || value !== " ")) {
@@ -357,7 +394,6 @@ function convert(jsonData) {    // Convert functions START
 
   function validateCellData(cell) {
     let value = cell.getValue();
-    console.log('validate first name...');
     if (value === undefined || value === null || value === "" || value === " ") {
       console.log(cell.getElement().classList.add('bg-danger'));
       table.alert('Value of this field cannot be empty!!!', 'msg');
@@ -366,7 +402,7 @@ function convert(jsonData) {    // Convert functions START
       }, 1500)
       return true;
     } else {
-      console.log(cell.getElement().classList.remove('bg-danger'));
+      cell.getElement().classList.remove('bg-danger');
       return false;
     }
 
@@ -394,9 +430,39 @@ function convert(jsonData) {    // Convert functions START
   }
 
   //checking important fields in cell
-  function importantFieldFormatter(cell, formatterParams, onRendered) {
+  function importantFieldFormatter(cell, formatterParams, onRendered) { 
     let value = cell.getValue();
-    //   console.log(value)
+    
+    // console.log(cell.getColumn().getField()); 
+    
+    if(cell.getColumn().getField() === "*Email Address"){ 
+      // const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; 
+      if(!emailRegex.test(value)){ 
+        cell.getElement().classList.add('bg-danger');  
+      } 
+
+    }
+    // condition for making the first name and last name sentence case
+    if(cell.getColumn().getField() === "*First Name" && value !== undefined && value !== null && value !== ""){   
+      let sentenceCase = toSentenceCase(value);
+      return sentenceCase;
+    } 
+    if(cell.getColumn().getField() === "*Last Name" && value !== undefined && value !== null && value !== ""){ 
+      let sentenceCase = toSentenceCase(value); 
+      return sentenceCase;
+    } 
+
+    //Checking for the industry field whether value is valid or not  
+
+    if(cell.getColumn().getField() === "Industry" && value !== undefined && value !== null && value !== ""){  
+      const cellWithError = value.startsWith("!");
+      // console.log(cellWithError)
+      if(cellWithError){
+        cell.getElement().classList.add('bg-danger');
+      } 
+    }
+   
     if (value === undefined || value === null || value === "") {
       // Apply custom styling to highlight the empty field
       console.log(cell.getElement().classList.add('bg-danger'));
@@ -405,15 +471,28 @@ function convert(jsonData) {    // Convert functions START
     return value;
   }
 
+  // For making the string senetence case 
 
+  function toSentenceCase(inputString) {
 
-  //create Tabulator on DOM element with id "example-table"
- table = new Tabulator("#container1", {  
+    // Convert the entire string to lowercase
+    const lowercaseString = inputString.toLowerCase();
+    
+    // Capitalize the first letter
+    const sentenceCaseString = lowercaseString.charAt(0).toUpperCase() + lowercaseString.slice(1);
+    
+    return sentenceCaseString;
+
+  } 
+
+  //create Tabulator on DOM element with id "example-table"  
+ table = new Tabulator("#container1", {   
     history:false,  
     maxHeight: "100%", 
     rowHeight: 40,
-    selectable: false,
-    validationMode: "blocking",
+    selectable:false,
+    printRowRange:"selected", 
+    validationMode: "blocking",                  
     selectablePersistence: false, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     data: jsonData, //assign data to table
     layout: "fitDataFill", //fit columns to width of table (optional)
@@ -423,22 +502,73 @@ function convert(jsonData) {    // Convert functions START
     movableColumns: true,
     paginationCounter: "rows",
     columns: newColumnHeaders,
-    selectableCheck: function (row) {
+    selectableCheck: function (row) { 
       //row - row component
-      console.log('This is the row data', row.getData());
+      // console.log('This is the row data', row.getData()); 
       return row.getData(); //allow selection of rows where the age is greater than 18
     },
     rowContextMenu: [
       {
         label: "Delete Row",
         action: function (e, row) {
-          row.delete();
+          if(tableEditable === false){
+            showToast("Please click on modify to edit or Delete"," linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+          } else{
+            row.delete(); 
+          }
+          
         }
       },
     ],
   });
 
-} // Convert function ENDS
+  //Method to make changes on Row Selection
+  
+  let selectedRows;
+
+  table.on("rowSelectionChanged", function(data, rows){
+    console.log(data.length);
+    // console.log(data)
+
+    selectedRows = data;
+
+    if(data.length > 0){
+      // deleteSelection.removeAttribute("disabled",""); 
+    }
+    
+    
+  }); 
+  
+
+  //Below function is for multiple row deletion _____;
+
+  // deleteSelection.addEventListener("click",() => {
+  //   deleteSelectedRows();
+  // })
+
+  function deleteSelectedRows() { 
+    // Get selected rows' data
+    var selectedData = table.getRows("selected");
+    console.log(selectedData)
+
+    selectedData.forEach((row) => {
+      row.delete();
+    })
+
+    // console.log(selectedData)
+  
+    // Iterate through selected rows and remove them from the table
+    selectedData.forEach(function (rowData) {
+      var index = table.getData().indexOf(rowData);
+      if (index !== -1) {
+        tableData.pop(table.getData()[index]);
+      }
+    });
+  }
+
+} // Convert function ENDS and data shown in frontend with the Tabulator library 
+
+
 
 
 //selecting modify button 
@@ -490,10 +620,12 @@ let editRowOption = false;
 modify.addEventListener('click', () => {
   if (tableEditable === false) {
     tableEditable = true;
-    modify.innerText = "Done"
+    modify.innerText = "Disable Editing";
+    showToast("Editing Mode On!!","#76b900");
   } else {
     tableEditable = false;
-    modify.innerText = "Modify"
+    modify.innerText = "Enable Editing"; 
+    showToast("Edit Complete!!Data Saved","#76b900");  
   }
 })
 
@@ -672,80 +804,19 @@ function confirmRow(e) {
   editButton.style.display = 'inline-block';
   currentRow.style.background = ''; // Reset background color
 
-}
-
-
-// approve.addEventListener('click', () => { 
-
-//   if (editRowOption === true) { 
-//     alertMessage.innerText = `The table is still on edit Mode`; 
-//     alertMessage.style.display = "block";
-//     alertMessage.style.zIndex = "1";
-
-//     setTimeout(() => {
-//       alertMessage.style.display = "none";
-//       alertMessage.style.zIndex = "-1";
-
-//     }, 2000)
-//   } else {
-//     // Run the code for approval
-
-//     const requiredFields = ["*First Name", "*Last Name", "*Email Address", "*Company Name", "*Country"];
-//     const errors = [];
-
-//     const tableRows = Convert();
-
-
-//     //creating a web worker
-//     const worker = new Worker('worker.js'); 
-
-//     worker.addEventListener('message', (event) => {
-//       const errorMessage = [];
-//       if (event.data.error) {
-//         // Handle errors and display toast messages
-//         event.data.messages.forEach((message) => {    
-//           errorMessage.push(message);
-//           if(errorMessage.length < 10){
-//             showToast(message);
-//           }
-//         });
-
-//         if(errorMessage.length < 10){
-//           showToast();
-//         }
-
-//         if(errorMessage.length > 50){
-//           showToast('too many error messages please check you file once again');
-//         }
-
-//       } else {
-//         // Data is valid, perform approval
-//         documentApproval = true;     
-//         showToast('Document has been approved'); 
-//       }
-
-//       worker.terminate();
-
-//     });
-
-//     worker.postMessage({ tableRows });  
-
-//   }
-
-// }); 
+} 
 
 
 
-approve.addEventListener('click', () => { 
-
-  console.log(columnsToDelete); 
+approve.addEventListener('click', async() => { 
+    // console.log(columnsToDelete);   
 
   let tableRows = table.getData();    
 
   // console.log(tableRows); 
 
   if(tableEditable === true){
-    showToast('Table still on edit mode click done to approve the changes !!!');
+    showToast('Table still on edit mode click done to approve the changes !!!'," linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
 
     }else{
 
@@ -760,17 +831,27 @@ approve.addEventListener('click', () => {
         // Handle errors and display toast messages
         event.data.messages.forEach((message) => {     
           errorMessage.push(message);
-          if(errorMessage.length < 10){
-            showToast(message);
-          }
         });
+        if(errorMessage.length < 10){
+          errorMessage.forEach((msg) => showToast(msg,"linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)"));
+          
+        }
         if(errorMessage.length > 50){
-          showToast('too many error messages, error cells are marked in RED!!'); 
+          showToast('too many error messages, error cells are marked in RED!!', "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)"); 
         }
 
-      } else {
-        // Data is valid, perform approval
+        
 
+      } else {
+
+        // Sending data if no Error START
+
+        const industryNameCheck = await checkIndustryData();
+
+        if(industryNameCheck.length > 0){
+            industryNameCheck.forEach((msg) => showToast(msg, "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)"));
+        }else{
+  
         if(documentApproval === false){
           documentApproval = true;     
         showToast('Document has been approved'); 
@@ -789,16 +870,32 @@ approve.addEventListener('click', () => {
         //Code for sending the data to backend Node js 
 
           const result = await sendJsonToMarketo(tableRows); 
+          console.log(result.message.result[0].status);
+          if(result.message.result[0].status === "Queued"){
+            container1.style.display = "none";
+            loaderContainer.style.display = "block";
+            loaderTextBelow.innerText = "Your document is being processed !!And sent to marketo"
+            DownloadBtnContainer.style.display = "none";  
 
-         console.log(result); 
+                  // Hiding the  table and showing the Loader
+                  // container1.style.display = "none";
+                  // loaderContainer.style.display = "block";
+                  // DownloadBtnContainer.style.display = "none"; 
+          }else{
+
+            showToast("Error Occured while Uploading the data to marketo!!"," linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+          }
 
         }else{
-          showToast("Document has already been approved!!!");  
+          showToast("Document has already been approved!!!","#76b900");  
         }
-        
+        // sending data if no error END
+
       }
 
-      worker.terminate();
+      }
+
+      worker.terminate(); 
 
     });
 
@@ -830,10 +927,11 @@ approve.addEventListener('click', () => {
 
 
 
-function showToast(message) { 
+function showToast(message,colour) { 
 
   Toastify({
     text: `${message}`,
+    className:"tabulator-selected",
     duration: 5000,  
     destination: "",
     newWindow: true,
@@ -842,11 +940,41 @@ function showToast(message) {
     position: "center", // `left`, `center` or `right`
     stopOnFocus: true, // Prevents dismissing of toast on hover
     style: {
-      background: "linear-gradient(to right, #00b09b, #96c93d)",
+      background: colour,
+      color:"#000",
+      fontWeight:"bold",
     },
     onClick: function () { } // Callback after click
   }).showToast();
 
+}
+
+//function for checking data in Industry column
+
+async function checkIndustryData(){
+
+  const errorCells = [];
+  table.getColumns().forEach((col) => {
+    const field = col.getField();
+ 
+    if(field === "Industry"){
+     const cells = col.getCells();
+     cells.forEach((cell) =>  {
+       
+       if(cell.getElement().classList.contains("bg-danger")){ 
+         const row = cell.getRow();
+         // console.log(row.getPosition())
+
+         errorCells.push(`Value ${cell.getValue()} Row no. ${row.getPosition()} is not Valid`);
+        
+       }
+     });
+    }
+ 
+   });
+
+   return errorCells;
+   
 }
 
 

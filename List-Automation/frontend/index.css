@@ -242,3 +242,106 @@ div.container{
     /* color: #76b900; */
 }
 
+
+/* table new changes */
+
+.tabulator-row.tabulator-row-even {
+    background-color: rgba(118,185,0,0.1);
+}
+.tabulator .tabulator-header {
+  border-bottom: 3px solid #76B900;
+}
+
+#delete-rows{
+    padding: 10px 20px;
+    margin:.6rem;
+    background-color: #76B900;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#download{
+    padding: 10px 20px;
+    margin:.6rem;
+    background-color: #76B900;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#modify{
+    padding: 10px 20px;
+    margin:.6rem;
+    background-color: #76B900;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#approve{
+    padding: 10px 20px;
+    margin:.6rem;
+    background-color: #76B900;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+
+/* CSS for the Job Title or Industry span from backend */
+
+.red-text {
+    color: red;
+    font-weight: bold;
+  }
+
+
+  /* Loader CSS */
+
+  .loader_container{
+    display: none;
+  }
+
+  .loader { 
+    border: 8px solid #000;
+    border-top: 8px solid #76b900;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px; 
+    animation: spin 1s linear infinite; 
+    position: absolute;
+    top: 50%;
+    left: 45%;
+    transform: translate(-50%, -50%);
+    /* display: none; */
+}
+
+.loader_text{
+    font-size: 17px;
+    font-weight: bold;
+    color: #000;
+    margin: 1rem;
+    text-align: center;
+    font-family: sans-serif;
+   
+}
+
+.loader_container{
+    height: 200px;
+    width: 100%;
+    position: relative;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+} 
+
+.tabulator-selected{
+    background-color: #76B900 !important;
+}
+
+.bg-danger{
+    background-color: red !important;
+}

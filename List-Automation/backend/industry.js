@@ -45,7 +45,7 @@ let industry_names = {
     '航空宇宙': 'aerospace',
     '農業': 'agriculture',
     '建築 / エンジニアリング / 建設': 'architecture_engineering_construction',
-    '自動車 / 輸送': 'automotive',
+    '自動車 / 輸送': 'automotive',  
     'クラウド サービス': 'cloud_services',
     '個人向けインターネット': 'internet',
     'エネルギー': 'energy',
@@ -171,4 +171,4 @@ let industry_names = {
 
 }
 
-module.exports = industry_names;   
+module.exports = industry_names;     

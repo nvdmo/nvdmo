@@ -3,13 +3,13 @@ const axios = require('axios');
 const FormData = require('form-data');
 
 
-async function makeBulkRequest(bearer_token){
+async function makeBulkRequest(bearer_token,fileInputPath,res){  
 
 const myHeaders = {
   Authorization: `Bearer ${bearer_token}`, 
 };
 
-const fileInputPath = "../downloads/COOL.csv"; 
+// const fileInputPath = `../downloads/${sheetName}`;  
 
 fs.readFile(fileInputPath, (err, data) => {
   if (err) {
@@ -27,13 +27,27 @@ fs.readFile(fileInputPath, (err, data) => {
       ...formData.getHeaders(), // Include the necessary headers for FormData
     },
   })
-    .then(response => console.log(response.data))
-    .catch(error => console.error('Error:', error));
+    .then(response =>{  
+        console.log(response.data);
+        res.status(201).json({
+            success:true,
+            message:response.data
+        })
+        return response.data; 
+    })
+    .catch(error => {
+        console.error('Error:', error); 
+        res.status(501).json({
+            success:false,
+            message:error
+        });
+        return error; 
+    });
 }); 
 
 }
 
-makeBulkRequest("da5aa691-31a8-4cd5-bce0-c43bdb559cbe:ab"); 
+
 
 
 module.exports = makeBulkRequest; 

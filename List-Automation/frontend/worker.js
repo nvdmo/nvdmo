@@ -20,7 +20,7 @@ self.addEventListener('message', (event) => {
         if (!isValidEmail(obj[field])) {
           emptyFieldsmsg.push(`Email Address not valid in Row number ${index + 1}`);
         }
-      } else if (obj[field] === undefined || obj[field] === "" || obj[field] === " " || obj[field] === null) {    
+      } else if (obj[field] === undefined || obj[field] === "" || obj[field] === " " || obj[field] === null) {
         emptyFields.push(field);
       }
     });
@@ -34,6 +34,7 @@ self.addEventListener('message', (event) => {
 
     return true;
   }
+
 
   const emptyFieldsmsg = [];
 
