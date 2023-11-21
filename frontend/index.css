@@ -172,7 +172,8 @@ div.container{
     display: none; 
 }
 
-.alert-danger{
+.alert-danger { 
+  
     position: absolute;
     top: 50%;
     left: 50%;
@@ -299,7 +300,7 @@ div.container{
 
   /* Loader CSS */
 
-  .loader { 
+  /* .loader { 
     border: 8px solid #000;
     border-top: 8px solid #76b900;
     border-radius: 50%;
@@ -307,9 +308,9 @@ div.container{
     height: 100px; 
     animation: spin 1s linear infinite; 
     /* display: none; */
-}
+/* }  */
 
-.loader_text{
+/* .loader_text{
      
     font-size: 17px;
     font-weight: bold; 
@@ -336,7 +337,7 @@ div.container{
     position: absolute;
     left: 0;
     top: 0;
-    /* display: none; */
+    /* display: none; /
     visibility: hidden;
     
 }
@@ -344,7 +345,125 @@ div.container{
 @keyframes spin {
     0% { transform: rotate(0deg); } 
     100% { transform: rotate(360deg); } 
+} */
+
+
+/* NEW LOADER CSS  */ 
+
+
+.loader_container { 
+     
+    height: 200px;
+    width: 100%;
+    position: relative;
+    width: 100%;
+    position: relative;
+    height: 100vh;
+    background-color:rgba(0,0,0,0.2);   
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: absolute;
+    left: 0;
+    top: 0;
+    /* display: none; */
+    visibility: hidden;
+    
 }
+
+.loader {
+    --cell-size: 52px;
+    --cell-spacing: 1px;
+    --cells: 3;
+    --total-size: calc(var(--cells) * (var(--cell-size) + 2 * var(--cell-spacing)));
+    display: flex;
+    flex-wrap: wrap;
+    width: var(--total-size);
+    height: var(--total-size);
+  }
+  
+  .cell {
+    flex: 0 0 var(--cell-size);
+    margin: var(--cell-spacing);
+    background-color: transparent;
+    box-sizing: border-box;
+    border-radius: 4px;
+    animation: 1.5s ripple ease infinite;
+  }
+  
+  .cell.d-1 {
+    animation-delay: 100ms;
+  }
+  
+  .cell.d-2 {
+    animation-delay: 200ms;
+  }
+  
+  .cell.d-3 {
+    animation-delay: 300ms;
+  }
+  
+  .cell.d-4 {
+    animation-delay: 400ms;
+  }
+  
+  .cell:nth-child(1) {
+    --cell-color: #00FF87;
+  }
+  
+  .cell:nth-child(2) {
+    --cell-color: #0CFD95;
+  }
+  
+  .cell:nth-child(3) {
+    --cell-color: #17FBA2;
+  }
+  
+  .cell:nth-child(4) {
+    --cell-color: #23F9B2;
+  }
+  
+  .cell:nth-child(5) {
+    --cell-color: #30F7C3;
+  }
+  
+  .cell:nth-child(6) {
+    --cell-color: #3DF5D4;
+  }
+  
+  .cell:nth-child(7) {
+    --cell-color: #45F4DE;
+  }
+  
+  .cell:nth-child(8) {
+    --cell-color: #53F1F0;
+  }
+  
+  .cell:nth-child(9) {
+    --cell-color: #60EFFF;
+  }
+  
+  /*Animation*/
+  @keyframes ripple {
+    0% {
+      background-color: transparent;
+    }
+  
+    30% {
+      background-color: var(--cell-color);
+    }
+  
+    60% {
+      background-color: transparent;
+    }
+  
+    100% {
+      background-color: transparent;
+    }
+  }
+
+
 
 .tabulator-selected{
     background-color: #76B900 !important;
@@ -353,3 +472,42 @@ div.container{
 .bg-danger{
     background-color: red !important;
 }
+
+
+/* CSS for Jum to page button  */
+
+.pageno_input {
+    min-height: 40px; 
+    max-width: 150px;
+    padding: 0 1rem;
+    color: #000;
+    font-size: 15px;
+    border: 1px solid #76b900;
+    border-radius: 6px 0 0 6px;
+    background-color: transparent;
+  }
+  
+  .button--submit {
+    min-height: 40px;
+    padding: .5em 1em;
+    border: none;
+    border-radius: 0 6px 6px 0;
+    background-color: #76b900;
+    color: #000;
+    font-size: 15px;
+    font-weight:bold;
+    cursor: pointer;
+    transition: background-color .3s ease-in-out;
+  }
+  
+  .button--submit:hover {
+    background-color: #5e5dcd;
+  }
+  
+  .input:focus, .input:focus-visible {
+    border-color: #3898EC;
+    outline: none;
+  }
+   
+
+  

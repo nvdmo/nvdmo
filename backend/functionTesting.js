@@ -2,7 +2,7 @@ const industry_names = require('./industry.js');
 const machine_names = require('./data.js');
 const country_names = require('./country.js');
 
-const userInput = "";
+const userInput = "モバイルコンピューティング推進コンソーシアム";  
 
 
 // function findMatchingIndustry(input) { 

@@ -1,4 +1,16 @@
 
+//Importing variables fromt ddifferent files  
+import { fewNames } from "./country.js";
+import {JobRoleNames} from "./JobNames.js";
+import {industryMachineNames} from "./industryNames.js";
+
+// console.log(JobRoleNames);  
+const jobrole = new Set(JobRoleNames);
+const industrynames = new Set(industryMachineNames); 
+
+
+
+
 const file = document.getElementById('input-file');
 const showName = document.querySelector('.file-name');
 const label = document.getElementById('input-label');
@@ -9,8 +21,9 @@ let container1 = document.getElementById("container1");
 const DownloadBtnContainer = document.querySelector('.download-button-container');
 const downloadBtn = document.getElementById('download');
 const deleteSelection = document.getElementById("delete-rows");
-
-const proceedButton = document.getElementById('input-button');
+const jumpPageButton = document.querySelector('.button--submit');
+const pageNoInput = document.querySelector('.pageno_input');
+const proceedButton = document.getElementById('input-button'); 
 let selectedFile;
 let tableData;
 let documentApproval = false;
@@ -25,10 +38,8 @@ const loaderTextBelow = document.querySelector("#loader_text");
 
 //defining the array containing table columns to be removed ;
 
-let columnsToDelete = []; 
+let columnsToDelete = [];
 let currentWorkingFile;
-
-
 
 
 let formData = new FormData();
@@ -58,18 +69,22 @@ file.addEventListener('change', () => {
 
 reset.addEventListener('click', () => {
   location.reload();
-})
+});
 
-deleteSelection.addEventListener("click",() => { 
-  console.log('scroll to button clicked');
-  table.setPage(Number(6)); 
 
-})
+//Jump to page button 
+// jumpPageButton.addEventListener('click', async () => {
+//   const pageSize = table.getPageSize();
+//   const pageNo = Math.ceil(Number(pageNoInput.value) / Number(pageSize));
+//   table.setPage(Number(pageNo)).then(() => { console.log('jumped') }).catch((err) => showToast("Page number not present"));
+// });
+
 
 
 // function to send file using fetch
 
 async function upload(formData) {
+
   try {
     const response = await fetch("http://localhost:5000/upload/excel/", {
       method: "POST",
@@ -87,14 +102,14 @@ async function upload(formData) {
       //Hiding the loader
       loaderContainer.style.visibility = "hidden";
       loader.style.display = "none"
-      loaderTextBelow.innerText = "Please Wait"; 
+      loaderTextBelow.innerText = "Please Wait";
 
       const button = document.createElement('button');
       button.id = "input-download";
       button.innerText = `show excel`;
       container.appendChild(button);
       const downloadButton = document.querySelector('#input-download');
-      downloadButton.addEventListener('click', () => downloadfn(result.data)); 
+      downloadButton.addEventListener('click', () => downloadfn(result.data));
       console.log(result.data);
 
 
@@ -102,10 +117,10 @@ async function upload(formData) {
       label.style.display = 'none';
       buttonGroup.style.display = 'none'
       showName.innerText = "There was an issue in parsing this file"
-       //Hiding the loader
-       loaderContainer.style.visibility = "hidden";
-       loader.style.display = "none"
-       loaderTextBelow.innerText = "Error"
+      //Hiding the loader
+      loaderContainer.style.visibility = "hidden";
+      loader.style.display = "none"
+      loaderTextBelow.innerText = "Error"
     }
   } catch (error) {
     console.error("Error:", error);
@@ -117,16 +132,15 @@ async function upload(formData) {
 proceedButton.addEventListener('click', async () => {
   // console.log(formData);
   upload(formData);
-loaderContainer.style.visibility = "visible"; 
-// loader.style.display = "block"
-loaderTextBelow.innerText = "Please Wait"
+  loaderContainer.style.visibility = "visible";
+  // loader.style.display = "block"
+  loaderTextBelow.innerText = "Please Wait"
 });
 
 
 
 
 function downloadfn(jsonData) {
-
 
   container.style.display = "none";
   container1.style.display = "block";
@@ -154,16 +168,16 @@ function convert(jsonData) {    // Convert functions START
 
   // Checking for important headers they should be present in the Excel
   const importantHeaders = ["*First Name", "*Last Name", "*Email Address", "*Company Name", "*Country"];
-  const checkCorrectHeaders = importantHeaders.some((head) => !headers.includes(head)); 
+  const checkCorrectHeaders = importantHeaders.some((head) => !headers.includes(head));
 
 
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/;
   const newColumnHeaders = checkCorrectHeaders ? (() => {
     // Code to run if the condition is true
-    showToast("Headers are Invalid Pleae Check Your File","linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)") 
+    showToast("Headers are Invalid Pleae Check Your File", "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)")
     DownloadBtnContainer.style.display = "none";
   })() : headers.map((head) => {
-
+    // Header Context Menu 
     var headerContextMenu = [
       {
         label: "Delete Column",
@@ -183,17 +197,180 @@ function convert(jsonData) {    // Convert functions START
           columnsToDelete.push(deletedColumn);
         }
       },
+      {
+        label: "Copy to All Valid Cell (Ent Opt-In Source)",
+        action: function (e, column) {
+
+          if (column.getField() !== "Holding Field - Ent Opt-In Source") {
+            showToast('Only Applied to |Holding Field - Ent Opt-In Source| Field', " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)")
+            return;
+          }
+
+          if (tableEditable === true) {
+            showToast("Disable edit to save the changes and proceed!!", "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+            return;
+          }
+
+          const EntTopicsColumn = column.getPrevColumn(); // This column needs to be the column before Opt-in sentence 
+          console.log(EntTopicsColumn);
+          const allRowWithYes = [];
+          let choosenValue;
+          EntTopicsColumn.getCells().forEach((cell) => {
+            const lowCase = cell.getValue().toLowerCase();
+            if (lowCase == "yes") {
+              let row = cell.getRow();
+              allRowWithYes.push(row);
+            }
+
+          });
+
+          // If no Entries are there in Ent - Topics  
+          if (allRowWithYes.length < 1) {
+            showToast("Ent Topics Entries not present!!"); 
+            console.log(allRowWithYes) 
+            return;
+          }
+
+          allRowWithYes.some((row, index) => {
+            if (index == 0) {
+              choosenValue = row.getCell("Holding Field - Ent Opt-In Source").getValue();
+              if (choosenValue === undefined || choosenValue === null || choosenValue === "") {
+                showToast("Add Value to the first Valid Cell!!", " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+                return true;
+              }
+              return true;
+            }
+          });
+          console.log(choosenValue);  
+
+          if (choosenValue) { 
+
+            table.getRows().forEach((rowToChange) => {
+              let cell = rowToChange.getCell(EntTopicsColumn);
+              const entTopicsValue = cell.getValue().toLowerCase();
+
+              if(entTopicsValue == "yes"){
+                rowToChange.update({"Holding Field - Ent Opt-In Source":choosenValue});
+              }
+            });
+          } 
+    
+        } // Function End   
+      },
+      {
+        label: "Copy to All Valid Cell (Ent Opt-In Sentence)",    
+        action: function (e, column) {
+          // For Ent Opt-In sentence
+          if (column.getField() !== "Holding Field - Ent Opt-In Sentence") {
+            showToast('Only Applied to | Holding Field - Ent Opt-In Sentence | Field', " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)")
+            return;
+          }
+
+          if (tableEditable === true) {
+            showToast("Disable edit to save the changes and proceed!!", "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+            return;
+          }
+
+          const EntTopicsColumn = column.getPrevColumn().getPrevColumn(); // This column needs to be the column before Opt-in sentence 
+          // console.log(EntTopicsColumn.getField());
+          const allRowWithYes = [];
+          let choosenValue;
+          EntTopicsColumn.getCells().forEach((cell) => {
+            const lowCase = cell.getValue().toLowerCase();
+            if (lowCase == "yes") {
+              let row = cell.getRow();
+              allRowWithYes.push(row);
+            }
+
+          });
+
+          // If no Entries are there in Ent - Topics  
+          if (allRowWithYes.length < 1) {
+            showToast("Ent Topics Entries not present!!");
+            return;
+          }
+
+          allRowWithYes.some((row, index) => {
+            if (index == 0) {
+              choosenValue = row.getCell("Holding Field - Ent Opt-In Sentence").getValue();
+              if (choosenValue === undefined || choosenValue === null || choosenValue === "") {
+                showToast("Add Value to the first Valid Cell!!", " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+                return true;
+              }
+              return true;
+            }
+
+          });
+         
+
+          if (choosenValue) {
+            
+            table.getRows().forEach((rowToChange) => {
+              let cell = rowToChange.getCell(EntTopicsColumn); 
+              const entTopicsValue = cell.getValue().toLowerCase();
+
+              if(entTopicsValue == "yes"){
+                rowToChange.update({"Holding Field - Ent Opt-In Sentence":choosenValue}); 
+              }
+            });
+          }
+
+        } // Function End  
+
+      },{
+        label:"populate B2B using first value", 
+        action:function (e,column){ 
+
+          if (column.getField() !== "B2B True") { 
+            showToast('Only Applied to | B2B True | Column ', " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)")
+            return;
+          }
+          
+          if (tableEditable === true) { 
+            showToast("Disable edit to save the changes and proceed!!", "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+            return;
+          }
+
+          const cells = column.getCells();
+          let fisrtCellValue;
+          cells.some((scell,index) => {
+            if(index == 0){
+               fisrtCellValue = scell.getValue(); 
+              // console.log(fisrtCellValue) 
+              if (fisrtCellValue === undefined || fisrtCellValue === null || fisrtCellValue === "") { 
+                showToast("Add Value to the first Valid Cell!!", " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
+                return true;
+              }
+              return true ; 
+            }
+            return;  
+          });
+
+          if(fisrtCellValue){
+            table.getRows().forEach((rowTochange,index) => {
+              const  column = rowTochange.getCell("B2B True"); 
+              if(index > 0){
+                rowTochange.update({"B2B True":fisrtCellValue});     
+              } 
+            })
+          }
+
+        }
+      }
 
     ]
 
-    if (head === '*First Name') {
+
+
+    if (head === '*First Name') { 
       return {
         title: head,
         field: head,
         hozAlign: "left",
+        headerSort: false,
         editor: "input",
         editable: editCheck,
-        formatter: importantFieldFormatter,
+        formatter: importantFieldFormatter, 
         cellEdited: validateCellData,
         headerContextMenu: headerContextMenu,
       }
@@ -204,6 +381,7 @@ function convert(jsonData) {    // Convert functions START
         title: head,
         field: head,
         hozAlign: "left",
+        headerSort: false,
         editor: "input",
         editable: editCheck,
         formatter: importantFieldFormatter,
@@ -213,39 +391,48 @@ function convert(jsonData) {    // Convert functions START
     }
 
     if (head === '*Email Address') {
+
       return {
         title: head,
         field: head,
         hozAlign: "left",
+        headerSort: false,
         editor: "input",
         editable: editCheck,
         formatter: importantFieldFormatter,
+        accessorDownload:dataBeforeDownload,  
         cellEdited: cellDataValidate,
         headerContextMenu: headerContextMenu,
+
       }
 
     }
 
-    if (head === '*Company Name') {
+    if (head === '*Company Name') {             
       return {
         title: head,
         field: head,
         hozAlign: "left",
+        headerSort: false,
         editor: "input",
         editable: editCheck,
         formatter: importantFieldFormatter,
+        accessorDownload:companyNameCheck, 
         cellEdited: validateCellData,
         headerContextMenu: headerContextMenu,
-      }
 
-    }
+      } 
+
+    } 
 
     if (head === '*Country') {
       return {
         title: head,
         field: head,
         hozAlign: "left",
-        editor: "input",
+        headerSort: false,
+        editor: "list",
+        editorParams: { values: [...fewNames], autocomplete: "true", allowEmpty: true, listOnEmpty: true },
         editable: editCheck,
         formatter: importantFieldFormatter,
         cellEdited: validateCellData,
@@ -258,8 +445,10 @@ function convert(jsonData) {    // Convert functions START
       return {
         title: head,
         field: head,
-        hozAlign: "left",
-        editor: "input",
+        hozAlign: "left", 
+        headerSort: false,
+        editor: "list",
+        editorParams: { values: [...industrynames], autocomplete: "true", allowEmpty: true, listOnEmpty: true },
         editable: editCheck,
         formatter: importantFieldFormatter,
         cellEdited: validateIndustryCell,
@@ -268,28 +457,34 @@ function convert(jsonData) {    // Convert functions START
 
     }
 
-    if (head === 'Job Title' || head === 'Job Role') {
+    if (head === 'Job Title' || head === 'Job Role') {  
+
       return {
-        title: head,
+        title:'Job Role',  
         field: head,
         hozAlign: "left",
-        editor: "input",
+        headerSort: false,
+        editor: "list",
+        editorParams: { values: [...jobrole], autocomplete: "true", allowEmpty: true, listOnEmpty: true }, 
         editable: editCheck,
         formatter: importantFieldFormatter,
-        cellEdited: validateJobCell, 
-        headerContextMenu: headerContextMenu, 
+        cellEdited: validateJobCell,
+        headerContextMenu: headerContextMenu,
       }
 
-    }
+    } 
 
 
     return {
+
       title: head,
       field: head,
       hozAlign: "left",
+      headerSort: false,
       editor: "input",
       editable: editCheck,
       headerContextMenu: headerContextMenu,
+
     }
 
   }).filter((item) => {
@@ -304,15 +499,57 @@ function convert(jsonData) {    // Convert functions START
 
   function validateIndustryCell(cell) {
     cell.getElement().classList.remove('bg-danger');
-    return false; 
-    
+    return false;
+
   }
+
+  // Change Data Before download 
+
+  function dataBeforeDownload(value, data, type, params, column){
+
+    if (column.getField() === "*Email Address") {
+      // const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/; 
+
+      if (!emailRegex.test(value)) {
+        // console.log('email invalid', value); 
+      //  cell.getElement().classList.add('bg-danger'); 
+         return value + " (Please enter valid email address)" ;     
+
+      }
+       
+
+      if (value === undefined || value === null || value === "" || value === " ") {  
+        return value + " (Please enter valid email address)"; 
+      }  
+     
+    } 
+
+    // cell.getElement().classList.remove('bg-danger'); 
+
+    return value; 
+
+  }
+
+
+ //Function for checking companyname and adding error to the downloaded sheet 
+  function companyNameCheck(value, data, type, params, column){  
+
+    if (value === undefined || value === null || value === "" || value === " ") {   
+      return value + " Please provide a Company Name";    
+    }
+
+    return value; 
+
+  }
+
+
 
   //Validating Job Role/Job Title 
 
-  function validateJobCell(cell){ 
+  function validateJobCell(cell) {
     cell.getElement().classList.remove('bg-danger');
-    return false;  
+    return false;
   }
 
   //Cell Data Validate 
@@ -322,10 +559,10 @@ function convert(jsonData) {    // Convert functions START
     // console.log(`cell edition function working.....`);
 
     // const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/; 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/; 
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/;
     let value = cell.getValue();
 
-    if (emailRegex.test(value) && (value !== undefined || value !== null || value !== " ")) { 
+    if (emailRegex.test(value) && (value !== undefined || value !== null || value !== " ")) {
       cell.getElement().classList.remove('bg-danger')
       return true;
     } else {
@@ -334,15 +571,13 @@ function convert(jsonData) {    // Convert functions START
       let T1 = setTimeout(() => {
         table.clearAlert();
       }, 1500);
-      setTimeout(() => {
+      setTimeout(() => { 
         clearTimeout(T1);
       }, 1800)
       return false;
     }
 
-  }
-
-  // function Validation of cell 
+  } 
 
   function validateCellData(cell) {
     let value = cell.getValue();
@@ -361,6 +596,9 @@ function convert(jsonData) {    // Convert functions START
   }
 
 
+
+
+
   // validator function to check table data 
 
   function cellDataCheck(cell, value, parameters) {
@@ -368,7 +606,7 @@ function convert(jsonData) {    // Convert functions START
     if (value === undefined || value === null || value === " ") {
       // Apply custom styling to highlight the empty field
       cell.getElement().classList.add('bg-danger');
-     
+
       return false;
     } else {
       cell.getElement().classList.remove('bg-danger');
@@ -385,18 +623,33 @@ function convert(jsonData) {    // Convert functions START
 
     if (cell.getColumn().getField() === "*Email Address") {
       // const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/; 
 
       if (!emailRegex.test(value)) {
         // console.log('email invalid', value);
-        console.log(cell.getElement().classList.add('bg-danger'));
-        return value;
+        console.log(cell.getElement().classList.add('bg-danger'));  
+         return value + " (Please enter valid email address)" ;     
+
       }
+      
+      const mail = value;  
+       const res = table.searchRows("*Email Address","=",mail);    
+       const rowColour = getRandomColor();  
+       if(res.length > 1){
+        res.forEach((row) => {
+          // console.log(row.getData());
+          row.getElement().style.backgroundColor = "#F8D7DA";  
+        });
+
+       }else{
+        cell.getRow().getElement().style.backgroundColor = ""; 
+       }  
+
       // console.log('email valid')
       cell.getElement().classList.remove('bg-danger');
     }
     // condition for making the first name and last name sentence case
-    if (cell.getColumn().getField() === "*First Name" && value !== undefined && value !== null && value !== "") { 
+    if (cell.getColumn().getField() === "*First Name" && value !== undefined && value !== null && value !== "") {
       let sentenceCase = toSentenceCase(value);
       return sentenceCase;
     }
@@ -414,39 +667,46 @@ function convert(jsonData) {    // Convert functions START
         cell.getElement().classList.add('bg-danger');
         return value;
       }
-      return value;  
+      return value;
 
     }
 
-    if (cell.getColumn().getField() === "Industry" && (value === undefined || value === null || value === "")) {  
-      return value;  
+    if (cell.getColumn().getField() === "Industry" && (value === undefined || value === null || value === "")) {
+      return value;
+    }
 
+    if(cell.getColumn().getField() === "*Company Name"){  
+      if(value === undefined || value === null || value === "" || value === " "){
+        cell.getElement().classList.add('bg-danger');
+        return value + " Please provide a Company Name";  
+      } 
+      return value;  
     }
 
     //Checking for the Job Title/Job Role  field whether value is valid or not 
 
-    if ((cell.getColumn().getField() === "Job Title" || cell.getColumn().getField() === "Job Role" ) && value !== undefined && value !== null && value !== "") {
+    if ((cell.getColumn().getField() === "Job Title" || cell.getColumn().getField() === "Job Role") && value !== undefined && value !== null && value !== "") {
       const cellWithError = value.startsWith("!");
       // console.log(cellWithError)
       if (cellWithError) {
         cell.getElement().classList.add('bg-danger');
         return value;
       }
-      return value;  
+      return value;
 
     }
 
-    if ((cell.getColumn().getField() === "Job Title" || cell.getColumn().getField() === "Job Role") && (value === undefined || value === null || value === "")) {  
-      return value;  
+    if ((cell.getColumn().getField() === "Job Title" || cell.getColumn().getField() === "Job Role") && (value === undefined || value === null || value === "")) {
+      return value;
 
-    } 
+    }
 
 
 
-    if (value === undefined || value === null || value === ""  || value === " ") {
+    if (value === undefined || value === null || value === "" || value === " ") {
       // Apply custom styling to highlight the empty field
       console.log('Last condition');
-      cell.getElement().classList.add('bg-danger');  
+      cell.getElement().classList.add('bg-danger');
       return value;
     }
 
@@ -463,13 +723,13 @@ function convert(jsonData) {    // Convert functions START
     // Capitalize the first letter
     const sentenceCaseString = lowercaseString.charAt(0).toUpperCase() + lowercaseString.slice(1);
 
-    return sentenceCaseString;
+    return sentenceCaseString
 
   }
- 
+
 
   //create Tabulator on DOM element with id "example-table"  
-  table = new Tabulator("#container1", { 
+  table = new Tabulator("#container1", {
     history: false,
     maxHeight: "100%",
     rowHeight: 40,
@@ -478,25 +738,35 @@ function convert(jsonData) {    // Convert functions START
     validationMode: "blocking",
     selectablePersistence: false, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
     data: jsonData, //assign data to table
-    layout: "fitDataFill", //fit columns to width of table (optional)
+    layout: "fitDataFill", //fit columns to width of table (optional) 
+    resizableColumnFit: true,
+    downloadDataFormatter:function(data){ 
+      //data - active table data array
+      debugger;
+     console.log('Make chnages before downloading the data....'); 
+
+      return data;
+  },
     pagination: "local",
     paginationSize: 10,
-    paginationSizeSelector: [10,20],
+    paginationSizeSelector: [10, 20],
     movableColumns: true,
     paginationCounter: "rows",
-    columns: [{title:"rowNo",field:"rowNo",formatter:function(cell,cellFormatterParams,onRendered){
+    columns: [{
+      title: "rowNo", field: "rowNo", formatter: function (cell, cellFormatterParams, onRendered) {
 
         const row = cell.getRow();
         const currentPage = row.getTable().getPage();
         const pageSize = row.getTable().getPageSize();
         const rowPos = row.getPosition(true);
         let rowNumber = (currentPage - 1) * pageSize + rowPos;
-      
-    return rowNumber;
-    },hozAlign: "left"},...newColumnHeaders],
-    selectableCheck: function (row) {      
+
+        return rowNumber;
+      }, hozAlign: "left"
+    }, ...newColumnHeaders],
+    selectableCheck: function (row) {
       return row.getData();
-    },    
+    },
     rowContextMenu: [
       {
         label: "Delete Row",
@@ -506,48 +776,37 @@ function convert(jsonData) {    // Convert functions START
           } else {
             // console.log('row deleted!!!');
             row.delete();
-            const currentPage = row.getTable().getPage(); 
-            const pageSize = row.getTable().getPageSize(); 
+            const currentPage = row.getTable().getPage();
+            const pageSize = row.getTable().getPageSize();
             table.redraw(true);
-         
-            
+
+
           }
 
         }
       },
     ],
-   
+
   });
 
   let selectedRows;
 
-  table.on("rowSelectionChanged", function (data, rows) { 
+  table.on("rowSelectionChanged", function (data, rows) {
     // console.log(data.length);
     // console.log(data)
 
     selectedRows = data;
 
-    if (data.length > 0) { 
+    if (data.length > 0) {
       // deleteSelection.removeAttribute("disabled",""); 
-    } 
+    }
 
   });
 
 
 
-  //   table.on("rowDeleted", function(row){
-  //     console.log("row deleted...");
-  //    const rows = table.getRows();
 
-  // });
-
-  //Below function is for multiple row deletion _____;
-
-  // deleteSelection.addEventListener("click",() => {
-  //   deleteSelectedRows();
-  // })
-
-  function deleteSelectedRows() {
+  function deleteSelectedRows() { 
     // Get selected rows' data
     var selectedData = table.getRows("selected");
     console.log(selectedData)
@@ -577,7 +836,7 @@ const modify = document.getElementById('modify');
 const approve = document.querySelector('#approve');
 let editRowOption = false;
 
-modify.addEventListener('click', () => {
+modify.addEventListener('click', () => { 
   if (tableEditable === false) {
     tableEditable = true;
     modify.innerText = "Disable Editing";
@@ -587,10 +846,13 @@ modify.addEventListener('click', () => {
     modify.innerText = "Enable Editing";
     showToast("Edit Complete!!Data Saved", "#76b900");
   }
-}) 
+})
 
 
 downloadBtn.addEventListener('click', () => {
+  
+
+  // console.log(table.setFilter([{field:"*Email Address",type:"like",value:"714125209@qq.com"}]))
 
   if (tableEditable === true) {
 
@@ -598,10 +860,9 @@ downloadBtn.addEventListener('click', () => {
 
   } else {
 
-    console.log('download the data...!');
-    table.download("csv", "data.csv", { delimiter: "," });
+    table.download("csv", "data.csv", { delimiter: ",",bom:true });   
 
-  }
+  } 
 
 })
 
@@ -619,7 +880,7 @@ function Convert() {
 
   for (var i = 1; i < table.rows.length; i++) {
     var row = {};
-    for (var j = 0; j < table.rows[i].cells.length; j++) { 
+    for (var j = 0; j < table.rows[i].cells.length; j++) {
       row[header[j]] = table.rows[i].cells[j].innerHTML;
     }
     rows.push(row);
@@ -685,7 +946,7 @@ approve.addEventListener('click', async () => {
   if (tableEditable === true) {
     showToast('Table still on edit mode click done to approve the changes !!!', " linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)");
 
-  } else { 
+  } else {
 
     //creating a web worker
     const worker = new Worker('worker.js');
@@ -712,11 +973,11 @@ approve.addEventListener('click', async () => {
         // Sending data if no Error START
 
         const industryNameCheck = await checkIndustryData();
-        console.log(industryNameCheck); 
+        console.log(industryNameCheck);
 
         if (industryNameCheck.length > 0) {
           industryNameCheck.forEach((msg) => showToast(msg, "linear-gradient(0deg, rgba(195,96,34,1) 0%, rgba(253,45,67,1) 100%)"));
-        } else { 
+        } else {
 
           if (documentApproval === false) {
             documentApproval = true;
@@ -725,7 +986,7 @@ approve.addEventListener('click', async () => {
             //Code below will take the JSON data back to node js to push into marketo
 
             tableRows = tableRows.map((row) => {
-              columnsToDelete.forEach((key) => {
+              columnsToDelete.forEach((key) => { 
                 delete row[key];
               });
               return row;
@@ -735,9 +996,9 @@ approve.addEventListener('click', async () => {
 
             //Code for sending the data to backend Node js 
 
-            const result = await sendJsonToMarketo(tableRows); 
+            // const result = await sendJsonToMarketo(tableRows); 
             console.log(result.message.result[0].status);
-            if (result.message.result[0].status === "Queued") {  
+            if (result.message.result[0].status === "Queued") { 
               container1.style.display = "none";
               loaderContainer.style.visibility = "visible";
               loaderTextBelow.innerText = "Your document is being processed !!And sent to marketo"
@@ -753,7 +1014,7 @@ approve.addEventListener('click', async () => {
             }
 
           } else {
-            showToast("Document has already been approved!!!", "#76b900"); 
+            showToast("Document has already been approved!!!", "#76b900");
           }
           // sending data if no error END
 
@@ -783,7 +1044,7 @@ async function sendJsonToMarketo(updatedTableData) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({updatedTableData,fileName:currentWorkingFile}),
+    body: JSON.stringify({ updatedTableData, fileName: currentWorkingFile }),
   });
 
   const data = await res.json();
@@ -798,7 +1059,7 @@ function showToast(message, colour) {
   Toastify({
     text: `${message}`,
     className: "tabulator-selected",
-    duration: 5000,
+    duration: 3000,
     destination: "",
     newWindow: true,
     close: true,
@@ -815,82 +1076,32 @@ function showToast(message, colour) {
 
 }
 
-//function for checking data in Industry column
+function checkIndustryData() {
+  // console.log(table.getRowFromPosition(2));  
+  return new Promise((resolve) => {
 
-// async function checkIndustryData() {
+    let tableRows = table.getData();
+    const worker = new Worker('chekingMachineNames.js');
 
-//   const errorCells = [];
-//   table.getColumns().forEach((col) => {
-//     const field = col.getField();
+    worker.addEventListener('message', async (event) => {
 
-//     if (field === "Industry") {
-//       const cells = col.getCells();
-//       cells.forEach((cell) => {
+      resolve(event.data.messages);
 
-//         if (cell.getElement().classList.contains("bg-danger")) {
-//           const row = cell.getRow();
-//           // console.log(row.getPosition())
+      worker.terminate();
 
-//           errorCells.push(`Value ${cell.getValue()} ON Row no. ${row.getPosition()} is not Valid`);
+    });
 
-//         }
+    worker.postMessage({ tableRows });
 
-//       });
-//     }
-
-//   });
-
-//   return errorCells;
-
-// }
+  })
 
 
+} 
 
 
-async function checkIndustryData() { 
-
-return new Promise((resolve) => {
-
-  setTimeout(() => { 
-    const errorCells = [];
-      table.getColumns().forEach((col) => {
-        const field = col.getField();
-    
-        if (field === "Industry") {
-          const cells = col.getCells();
-          cells.forEach((cell) => {
-    
-            if (cell.getElement().classList.contains("bg-danger")) {
-              const row = cell.getRow();
-              // console.log(row.getPosition())
-    
-              errorCells.push(`Value ${cell.getValue()} ON Row no. ${row.getPosition()} is not Valid`);
-    
-            }
-    
-          });
-        }
-        // For checking the Industry field 
-        if (field === "Job Title" || field === "Job Role") {
-          const cells = col.getCells();
-          cells.forEach((cell) => {
-    
-            if (cell.getElement().classList.contains("bg-danger")) {
-              const row = cell.getRow();
-    
-              errorCells.push(`Value ${cell.getValue()} ON Row no. ${row.getPosition()} is not Valid`);
-    
-            }
-    
-          });
-        }
-    
-      });
-
-      resolve(errorCells); 
-
-  },0);
-
-})
-
-}
+function getRandomColor() {
+  var red = Math.floor(Math.random() * 256);
+  var green = Math.floor(Math.random() * 256);
+  var blue = Math.floor(Math.random() * 256);
+  return `rgb(${red},${green},${blue})`;
+} 

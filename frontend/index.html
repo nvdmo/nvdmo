@@ -18,7 +18,7 @@
 <style>
     table, th, td {
            border: none;
-           border-collapse: collapse; 
+           border-collapse: collapse;  
         }
         td, th {
 
@@ -27,6 +27,7 @@
            border-bottom: 1px solid #ccc; 
 
         }
+        
 </style>
 <body>
     
@@ -36,14 +37,14 @@
           </div> 
  
     
-      <div class="alert alert-success" role="alert">
+      <div class="alert alert-success" role="alert"> 
         &nbsp;&nbsp;&nbsp;&nbsp; 
       </div>
     <div class="container">
         <div class="input-title">Select Your Excel File</div>
         <label id="input-label" for="input-file">Choose Your File</label>
         <div class="input-box">
-            <input id="input-file" accept=".xlsx, .xls, .csv" type="file" > 
+            <input id="input-file" accept=".xlsx, .xls, .csv" type="file" >  
         </div>
 
         <div class="file-name"></div> 
@@ -58,15 +59,34 @@
 
     <!-- container visible after excel is parsed -->   
     
-        <div class="download-button-container">
-            <button id="download" type="button" class="btn btn-success">Download</button>
+        <div class="download-button-container"> 
+            <button id="download" type="button" class="btn btn-success">Download</button> 
             <button id="modify" type="button" class="btn btn-warning">Enable Editing</button>
             <button id="approve" type="button" class="btn btn-info">Approve</button>
-            <button id="delete-rows" class="btn btn-info">Delete Selection</button>  
+            <!-- <button id="delete-rows" class="btn btn-info">Delete Selection</button> -->
+            <!-- <input type="number" class="pageno_input" id="page_number" name="Email" placeholder="Row number" autocomplete="off"> // Commented jump page number code 
+            <input class="button--submit" value="Jump To Page" type="button">   -->
         </div>
         
         <div class="loader_container">
-            <div id="loader" class="loader"></div> 
+            <div id="loader" class="loader">
+                <div class="cell d-0"></div>
+                <div class="cell d-1"></div>
+                <div class="cell d-2"></div>
+              
+                <div class="cell d-1"></div>
+                <div class="cell d-2"></div>
+                
+                
+                <div class="cell d-2"></div>
+                <div class="cell d-3"></div>
+                
+                
+                <div class="cell d-3"></div>
+                <div class="cell d-4"></div>
+                
+                
+              </div>
             <div id="loader_text" class="loader_text">You data is added to queue!!PLEASE WAIT....</div> 
         </div> 
     
@@ -80,7 +100,7 @@
 
 
     
-    <script src="index.js"></script> 
+    <script type="module" src="index.js"></script> 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </body>

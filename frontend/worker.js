@@ -4,14 +4,14 @@ const requiredFields = ["*First Name", "*Last Name", "*Email Address", "*Company
 // Add the isValidEmail and isObjectValid functions here 
 
 self.addEventListener('message', (event) => {
-  const data = event.data;
+  const data = event.data; 
   const tableRows = data.tableRows;
 
 
   //Adding both function for checking email validity and object validity
   function isValidEmail(email) {
     // const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/;    
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{1,}$/;     
     return emailRegex.test(email);
   }
   function isObjectValid(obj, index) {
@@ -35,6 +35,30 @@ self.addEventListener('message', (event) => {
     }
 
     return true;
+
+  }
+
+  // Functions for checking duplicate emails ; 
+  function checkDuplicateEmails(){
+    const emailToRows = {};
+
+    tableRows.forEach((person, index) => {
+      const email = person["*Email Address"]; 
+  
+      if (!emailToRows[email]) {
+          emailToRows[email] = [index + 1];
+      } else {
+          emailToRows[email].push(index + 1); 
+      }
+
+  });
+
+  const duplicateEmails = Object.entries(emailToRows)
+    .filter(([email, rowArray]) => rowArray.length > 1)
+    .map(([email, rowArray]) => ({ email, rows: rowArray })); 
+    
+  return duplicateEmails; 
+
   }
 
 
@@ -44,9 +68,19 @@ self.addEventListener('message', (event) => {
     return !isObjectValid(obj, index);
   });
 
-  if (emptyFieldsmsg.length > 0) {
+  // Checking for duplicate emails in the Data; 
+  const duplicateEmailRows = checkDuplicateEmails(); 
+
+  if(duplicateEmailRows.length > 0){ 
+    duplicateEmailRows.forEach((item) => {  
+      emptyFieldsmsg.push(`Email ${item.email} has duplicate on rows ${item.rows}`); 
+    });
+   }
+
+  if (emptyFieldsmsg.length > 0) { 
     self.postMessage({ error: true, messages: emptyFieldsmsg });
   } else {
     self.postMessage({ error: false });
   }
+ 
 });

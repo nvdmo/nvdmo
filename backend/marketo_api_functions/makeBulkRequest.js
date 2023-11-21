@@ -27,16 +27,18 @@ fs.readFile(fileInputPath, (err, data) => {
       ...formData.getHeaders(), // Include the necessary headers for FormData
     },
   })
-    .then(response =>{  
+    .then(response => {  
         console.log(response.data);
+
         res.status(201).json({
             success:true,
             message:response.data
-        })
-        return response.data; 
+        }); 
+        // return response.data;  
     })
     .catch(error => {
-        console.error('Error:', error); 
+        console.error('Error:', error);
+
         res.status(501).json({
             success:false,
             message:error

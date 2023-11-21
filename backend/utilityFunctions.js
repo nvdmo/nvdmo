@@ -19,7 +19,7 @@ const country_names = require('./country.js');
     for (const key of Object.keys(machine_names)) {
         const lowerKey = key.toLowerCase();
         let keyWords = lowerKey.split(/[\/&]+/);
-        keyWords = keyWords.map((key) =>  key.trim());
+        keyWords = keyWords.map((key) =>  key.trim());    
         const regex = new RegExp(key, 'i');
   
         // Check if any of the input words match any of the key words
@@ -45,8 +45,9 @@ const country_names = require('./country.js');
           return false;
     });
 
-    if (regexMatch) {       
-        return machine_names[regexMatch]; 
+    if (regexMatch) {  
+
+        return machine_names[regexMatch];  
     }
   
     return input == null || input === undefined || input == "" ? input : `!${input}`; // No match found 
@@ -54,13 +55,20 @@ const country_names = require('./country.js');
   }
 
   // FUNCTION FOR FINDING MATCHING INDURTY
-   const findMatchingIndustry =  function (input) { 
-    const lowerInput = input.toLowerCase(); 
+   const findMatchingIndustry =  function (input) {  
+    let lowerInput;
+    if(typeof input === "string"){
+        lowerInput = input.toLowerCase();
+    }else{
+        return `!${input}`; 
+    }
+
+      
     
     // First, check for an exact match in keys
     const exactMatch = Object.keys(industry_names).find(key => key.toLowerCase() === lowerInput);
     if (exactMatch) {
-        return industry_names[exactMatch];
+        return industry_names[exactMatch]; 
     }
 
     // If no exact match in keys, split the input by "/" to handle multiple words
@@ -69,7 +77,7 @@ const country_names = require('./country.js');
     // Iterate through the keys to find a match
     for (const key of Object.keys(industry_names)) {
         const lowerKey = key.toLowerCase();
-        let keyWords = lowerKey.split(/[\/&]+/);
+        let keyWords = lowerKey.split(/[\/&]+/); 
         keyWords = keyWords.map((key) =>  key.trim());
         const regex = new RegExp(key, 'i');
 
@@ -113,7 +121,7 @@ const country_names = require('./country.js');
 
 //     // If no exact match in keys, split the input by "/" or "&" to handle multiple words and separators
 //     let inputWords = lowerInput.split(/[\/&]+/); // Use [\/&]+ to match either "/" or "&"
-//     inputWords = inputWords.map((input) => input.trim()); 
+//     inputWords = inputWords.map((input) => input.trim());     
 //     // console.log(inputWords);
 
 //     // Iterate through the keys to find a match
@@ -171,9 +179,13 @@ const country_names = require('./country.js');
 
      // If no match found in keys, try regex matching
      const regexMatch = Object.keys(country_names).find(key => {
-        const regex = new RegExp(input, 'i'); // 'i' for case-insensitive matching 
+        // const regex = new RegExp(input, 'i'); // 'i' for case-insensitive matching 
+        if (input !== "") { // Check that input is not empty
+            const regex = new RegExp(input, 'i');
+            return regex.test(key); 
+          }
         
-        return regex.test(key);
+        return false;
     }); 
 
     if (regexMatch) {  
@@ -182,7 +194,7 @@ const country_names = require('./country.js');
     }
 
   
-    return null; // No match found
+    return null; // No match found 
 
   }
 

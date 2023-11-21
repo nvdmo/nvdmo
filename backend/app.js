@@ -13,12 +13,12 @@ const reader = require('xlsx');
 
 //importing all the utility functions 
 
-const { findMatchingMachineNames,
+const { findMatchingMachineNames, 
   findMatchingIndustry,
-  findMatchingCountry } = require('./utilityFunctions.js');
+  findMatchingCountry } = require('./utilityFunctions.js'); 
 
 //importing marketo API functions 
-const generateToken = require('./marketo_api_functions/generateToken.js');
+const generateToken = require('./marketo_api_functions/generateToken.js'); 
 const makeBulkRequest = require('./marketo_api_functions/makeBulkRequest.js');
 
 
@@ -61,7 +61,8 @@ app.post('/upload/excel', upload.single('excel'), function (req, res) {
 
 
     for (let i = 0; i < sheets.length; i++) {
-      if (i === 0) {
+
+      if (i === 0) { 
         const temp = reader.utils.sheet_to_json(
           file.Sheets[file.SheetNames[i]], {
           header: 0,
